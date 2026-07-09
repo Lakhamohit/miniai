@@ -1,84 +1,84 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>MiniAI v0.1</title>
+<title>MiniAI v1.0</title>
 
 <style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f1f3f5;
-    margin: 0;
-    padding: 20px;
+
+body{
+    font-family:Arial,sans-serif;
+    background:#f1f3f5;
+    margin:0;
+    padding:20px;
 }
 
-#chat-container {
-    max-width: 600px;
-    margin: auto;
-    background: white;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+#chat-container{
+    max-width:700px;
+    margin:auto;
+    background:white;
+    border-radius:10px;
+    padding:20px;
+    box-shadow:0 3px 10px rgba(0,0,0,.15);
 }
 
-#chat-box {
-    height: 400px;
-    overflow-y: auto;
-    border: 1px solid #ddd;
-    padding: 10px;
-    background: #fafafa;
+#chat-box{
+    height:450px;
+    overflow-y:auto;
+    border:1px solid #ddd;
+    padding:10px;
+    background:#fafafa;
 }
 
-.message {
-    padding: 10px;
-    margin: 10px;
-    border-radius: 8px;
+.message{
+    padding:10px;
+    margin:10px 0;
+    border-radius:8px;
+    white-space:pre-wrap;
 }
 
-.user {
-    background: #007bff;
-    color: white;
-    margin-left: 20%;
-}
-
-.ai {
-    background: #e9ecef;
-    margin-right: 20%;
-}
-
-#input-area {
-    display: flex;
-    margin-top: 10px;
-    gap: 10px;
-}
-
-input {
-    flex: 1;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-}
-
-button {
-    padding: 10px 20px;
-    background: #007bff;
+.user{
+    background:#007bff;
     color:white;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
+    margin-left:20%;
 }
 
-button:hover {
+.ai{
+    background:#e9ecef;
+    margin-right:20%;
+}
+
+#input-area{
+    display:flex;
+    gap:10px;
+    margin-top:10px;
+}
+
+input{
+    flex:1;
+    padding:10px;
+    font-size:16px;
+}
+
+button{
+    padding:10px 20px;
+    border:none;
+    background:#007bff;
+    color:white;
+    cursor:pointer;
+    border-radius:5px;
+}
+
+button:hover{
     background:#0056b3;
 }
+
 </style>
 
 </head>
-
 
 <body>
 
@@ -89,175 +89,129 @@ button:hover {
 <div id="chat-box"></div>
 
 <div id="input-area">
-<input id="user-input" placeholder="Ask something...">
-<button onclick="sendMessage()">Send</button>
-</div>
+
+<input
+id="user-input"
+placeholder="Ask MiniAI anything..."
+>
+
+<button onclick="sendMessage()">
+Send
+</button>
 
 </div>
 
-
+</div>
 
 <script>
 
-const chatBox = document.getElementById("chat-box");
-const input = document.getElementById("user-input");
+const chatBox=document.getElementById("chat-box");
+const input=document.getElementById("user-input");
 
+function addMessage(text,type){
 
+let div=document.createElement("div");
 
-function addMessage(text, type){
+div.className="message "+type;
 
-    let div = document.createElement("div");
+div.innerText=text;
 
-    div.className = "message " + type;
+chatBox.appendChild(div);
 
-    div.innerText = text;
-
-    chatBox.appendChild(div);
-
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-
+chatBox.scrollTop=chatBox.scrollHeight;
 
 }
-
-
-
-
 
 async function searchWikipedia(query){
 
+try{
 
+const url=
+"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch="
++
+encodeURIComponent(query)
++
+"&utf8=&format=json&origin=*";
 
-     try {
+const response=await fetch(url);
 
-    // Step 1: Search Wikipedia
-    let searchURL =
-    "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch="
-    + encodeURIComponent(query)
-    + "&format=json&origin=*";
+const data=await response.json();
 
-    let searchResponse = await fetch(searchURL);
+if(!data.query.search.length){
 
-    let searchData = await searchResponse.json();
-
-    if (!searchData.query.search.length) {
-        return null;
-    }
-
-    // Step 2: Get first result title
-    let title = searchData.query.search[0].title;
-
-    // Step 3: Get summary
-    let summaryURL =
-    "https://en.wikipedia.org/api/rest_v1/page/summary/"
-    + encodeURIComponent(title);
-
-    let summaryResponse = await fetch(summaryURL);
-
-    let summaryData = await summaryResponse.json();
-
-    return summaryData.extract;
-
-}
-catch (error) {
-
-    console.log(error);
-
-    return null;
+return null;
 
 }
 
+const page=data.query.search[0];
 
+const snippet=page.snippet
+.replace(/<[^>]+>/g,"");
 
+return page.title+"\n\n"+snippet+"...";
 
+}
 
+catch(error){
 
+console.error(error);
+
+return null;
+
+}
+
+}
 
 async function think(question){
 
-    addMessage("Thinking...", "ai");
+addMessage("Thinking...","ai");
 
+let answer=await searchWikipedia(question);
 
+document.querySelector(".ai:last-child").remove();
 
-    let answer = await searchWikipedia(question);
+if(answer){
 
-
-
-    let messages = document.querySelectorAll(".ai");
-
-    messages[messages.length-1].remove();
-
-
-
-
-
-    if(answer){
-
-        return answer;
-
-    }
-    else {
-
-        return "I couldn't find information about that yet.";
-
-    }
+return answer;
 
 }
 
+return "Sorry, I couldn't find anything.";
 
-
-
+}
 
 async function sendMessage(){
 
-    let question = input.value.trim();
+let question=input.value.trim();
 
+if(question==="") return;
 
+addMessage(question,"user");
 
-    if(question==="") return;
+input.value="";
 
+let reply=await think(question);
 
-
-    addMessage(question,"user");
-
-
-
-    input.value="";
-
-
-
-    let reply = await think(question);
-
-
-
-    addMessage(reply,"ai");
+addMessage(reply,"ai");
 
 }
 
+input.addEventListener("keydown",function(e){
 
+if(e.key==="Enter"){
 
-input.addEventListener("keypress",function(e){
+sendMessage();
 
-    if(e.key==="Enter"){
-        sendMessage();
-    }
+}
 
 });
 
-
-
 addMessage(
-"Hello! I am MiniAI. Ask me anything.",
+"Hello! I'm MiniAI. Ask me anything.",
 "ai"
 );
 
-
-
 </script>
 
-
-
-
 </body>
-
 </html>
